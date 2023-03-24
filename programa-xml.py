@@ -1,30 +1,19 @@
-import xml.sax
+import xml.etree.ElementTree as ET
 
-class MyHandler(xml.sax.ContentHandler):
-    def init(self):
-        self.data = {}
-        self.tag_set = set()
-        self.tag_list = []
-        self.categorias = []
+tree = ET.parse('FullOct2007.xml')
+root = tree.getroot()
 
-    def startElement(self, name, attrs):
-        if name not in self.tag_set:
-            self.tag_set.add(name)
-            self.tag_list.append(name)
+new_root = ET.Element('data')
 
-    def characters(self, content):  #Lee el contenido que hay entre la etiqueta start y end
-            self.contenidoEtiqueta = content #Lo uso en endElement
+# Recorremos todas las etiquetas <document>
+for document in root.findall('.//document'):
+    # Buscamos la etiqueta <cat> dentro de cada <document>
+    cat = document.find('.//cat')
+    # Si la categoría es "Business & Finance", agregamos el <document> al nuevo árbol XML
+    if cat is not None and (cat.text == 'Formula One' or cat.text == 'Small Business'):
+        print("entra")
+        new_root.append(document)
 
-    def endElement(self, name):
-         if name == 'cat':
-            self.categorias.append(self.contenidoEtiqueta)
-
-
-# Crear el analizador SAX y el controlador
-parser = xml.sax.make_parser()
-handler = MyHandler()
-parser.setContentHandler(handler)
-parser.parse('FullOct2007.xml')
-
-
-print(handler.categorias)
+# Guardamos el nuevo árbol XML en un archivo
+new_tree = ET.ElementTree(new_root)
+new_tree.write('categorias.xml', encoding='utf-8')
